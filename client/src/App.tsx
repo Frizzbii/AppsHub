@@ -16,7 +16,7 @@ function App() {
 
   useEffect(  () => {
     const fetchWeather = async() => {
-      const response = await fetch( 'http://localhost:5218/weatherforecast' );
+      const response = await fetch( '/api/weatherforecast' );
       const data = await response.json();
 
       setWeathers( data );
