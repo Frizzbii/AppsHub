@@ -1,0 +1,6 @@
+@AppsHub.Api_HostAddress = http://localhost:5218
+
+GET {{AppsHub.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
