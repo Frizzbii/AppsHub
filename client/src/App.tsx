@@ -1,31 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useWeather } from './useWeather'
 import './App.css'
 
 
-type Weather = {
-  date: string;
-  temperatureC: number;
-  temperatureF: number;
-  summary: string | null;
-}
-
-
 function App() {
-  const [ weathers, setWeathers ] = useState<Weather[]>( [] );
+  const { weathers, loading, errorMessage } = useWeather()
 
-
-  useEffect(  () => {
-    const fetchWeather = async() => {
-      const response = await fetch( '/api/weatherforecast' );
-      const data = await response.json();
-
-      setWeathers( data );
-    };
-
-    fetchWeather();
-  }, [] );
-  
-
+  if ( loading ) {
+    return <p>Loading</p>
+  }
+  if ( errorMessage ) {
+    return <p>{ errorMessage }</p>
+  }
   return (
     <>
       <section id="center">
