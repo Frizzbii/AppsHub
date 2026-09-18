@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react'
+import type { Weather } from './types';
 
-
-type Weather = {
-  date: string;
-  temperatureC: number;
-  temperatureF: number;
-  summary: string | null;
-}
 
 type UseWeatherResult = {
   weathers: Weather[];

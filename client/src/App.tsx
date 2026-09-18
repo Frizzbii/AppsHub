@@ -1,4 +1,5 @@
 import { useWeather } from './useWeather'
+import { WeatherCard } from './WeatherCard'
 import './App.css'
 
 
@@ -9,20 +10,18 @@ function App() {
     return <p>Loading</p>
   }
   if ( errorMessage ) {
-    return <p>{ errorMessage }</p>
+      return <p>{ errorMessage }</p>
   }
   return (
     <>
       <section id="center">
         <div className="hero">
+          <h1>AppsHub</h1>
         </div>
-        <div>
-          <h1>Weather forecast</h1>
-          
-          {weathers.map( ( weather ) => 
-            <p key={ weather.date }>{ weather.date }, { weather.temperatureC }, { weather.temperatureF }, { weather.summary }</p>
-          ) }
-        </div>
+        <h2>Weather forecast</h2>
+        {weathers.map( ( weather ) => 
+          <WeatherCard key={ weather.date } weather={ weather }/>
+        )}
       </section>
     </>
   )
