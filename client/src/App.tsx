@@ -1,16 +1,20 @@
 import { useWeather } from './useWeather'
 import { WeatherCard } from './WeatherCard'
+import type { ReactNode } from 'react';
 import './App.css'
 
 
 function App() {
-  const { weathers, loading, errorMessage } = useWeather()
+  const { weathers, loading, errorMessage, fetchWeather } = useWeather()
 
-  if ( loading ) {
-    return <p>Loading</p>
-  }
-  if ( errorMessage ) {
-      return <p>{ errorMessage }</p>
+  let weatherDisplay : ReactNode;
+
+  if ( loading && !weathers ) { weatherDisplay = <p>Loading</p> }
+  else if ( errorMessage ) { weatherDisplay = <p>{ errorMessage }</p> }
+  else {
+    weatherDisplay = weathers.map( ( weather ) =>
+      <WeatherCard key={ weather.date } weather={ weather }/> 
+    )
   }
   return (
     <>
@@ -18,10 +22,11 @@ function App() {
         <div className="hero">
           <h1>AppsHub</h1>
         </div>
-        <h2>Weather forecast</h2>
-        {weathers.map( ( weather ) => 
-          <WeatherCard key={ weather.date } weather={ weather }/>
-        )}
+        <div>
+          <h2>Weather forecast</h2>
+          <button onClick={ fetchWeather } disabled={ loading }>Refresh weather</button>
+          { weatherDisplay }
+        </div>
       </section>
     </>
   )
