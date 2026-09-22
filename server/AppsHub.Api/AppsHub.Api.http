@@ -1,6 +1,13 @@
 @AppsHub.Api_HostAddress = http://localhost:5218
 
-GET {{AppsHub.Api_HostAddress}}/weatherforecast/
+GET {{AppsHub.Api_HostAddress}}/api/weatherforecast/
 Accept: application/json
 
 ###
+
+POST {{AppsHub.Api_HostAddress}}/api/youtube/download/
+Content-Type: application/json
+
+{
+    "url": "www.youtube.com"
+}
