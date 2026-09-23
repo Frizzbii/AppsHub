@@ -9,5 +9,6 @@ POST {{AppsHub.Api_HostAddress}}/api/youtube/download/
 Content-Type: application/json
 
 {
-    "url": "www.youtube.com"
+    "url": "https://www.youtube.com/watch?v=bn1YCClRF-g",
+    "format": "mp3"
 }
