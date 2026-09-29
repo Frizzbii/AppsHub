@@ -52,6 +52,7 @@ public class DownloadService : IDownloadService
                             "-o", Path.Combine(_settings.DownloadFolder, "%(id)s.%(ext)s"),
                             "--print", "after_move:filepath",
                             "--ffmpeg-location",  _settings.Ffmpeg,
+                            "--js-runtimes", ("deno:" + _settings.Deno),
                             uriResult.OriginalString ];
         foreach (string argument in arguments)
         {
@@ -90,12 +91,26 @@ public class DownloadService : IDownloadService
             if (process.ExitCode != 0)
             {
                 _logger.LogWarning("yt-dlp exited with code {ExitCode}. Error output: {Error}", process.ExitCode, error);
-                return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed: Exit code " + process.ExitCode);
+                return ClassifyError(error);
             }
 
             if (string.IsNullOrWhiteSpace(output)) return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed: Output is empty.");
 
             return new DownloadResult(DownloadOutcome.Success, output.Trim(), "Download was successful.");
         }
+    }
+
+    private static DownloadResult ClassifyError(string error)
+    {
+        if (error.Contains("unavailable", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DownloadResult(DownloadOutcome.NotFound, null, "Video was not found: Exit code ");
+        }
+        if (error.Contains("incomplete", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DownloadResult(DownloadOutcome.NotFound, null, "Incomplete youtube url: Exit code ");
+        }
+
+        return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed: Exit code ");
     }
 }

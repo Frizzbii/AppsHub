@@ -22,6 +22,8 @@ builder.Services.AddOptions<DownloadSettings>()
         "yt-dlp not found. Check YoutubeDownloadSettings:Ytdlp.")
     .Validate(settings => File.Exists(settings.Ffmpeg),
         "ffmpeg not found. Check YoutubeDownloadSettings:Ffmpeg.")
+    .Validate(settings => File.Exists(settings.Deno),
+        "deno not found. Check YoutubeDownloadSettings:Deno.")
     .Validate(settings => Directory.Exists(settings.DownloadFolder),
         "Download folder not found. Check YoutubeDownloadSettings:DownloadFolder.")
     .ValidateOnStart();
