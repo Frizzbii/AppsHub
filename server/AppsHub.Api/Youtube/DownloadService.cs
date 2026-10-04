@@ -94,7 +94,11 @@ public class DownloadService : IDownloadService
                 return ClassifyError(error);
             }
 
-            if (string.IsNullOrWhiteSpace(output)) return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed: Output is empty.");
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                _logger.LogWarning("yt-dlp completed with code {ExitCode} but produced no file for {Url}", process.ExitCode, url);
+                return new DownloadResult(DownloadOutcome.NotFound, null, "No video found at this URL.");
+            }
 
             return new DownloadResult(DownloadOutcome.Success, output.Trim(), "Download was successful.");
         }
@@ -104,13 +108,17 @@ public class DownloadService : IDownloadService
     {
         if (error.Contains("unavailable", StringComparison.OrdinalIgnoreCase))
         {
-            return new DownloadResult(DownloadOutcome.NotFound, null, "Video was not found: Exit code ");
+            return new DownloadResult(DownloadOutcome.NotFound, null, "Video was not found.");
         }
         if (error.Contains("incomplete", StringComparison.OrdinalIgnoreCase))
         {
-            return new DownloadResult(DownloadOutcome.NotFound, null, "Incomplete youtube url: Exit code ");
+            return new DownloadResult(DownloadOutcome.Refused, null, "Incomplete youtube url.");
+        }
+        if (error.Contains("private", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DownloadResult(DownloadOutcome.NotFound, null, "Video is private.");
         }
 
-        return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed: Exit code ");
+        return new DownloadResult(DownloadOutcome.Failed, null, "Download has failed.");
     }
 }
