@@ -9,6 +9,8 @@ public class DownloadService : IDownloadService
     private readonly DownloadSettings _settings;
     private readonly ILogger<DownloadService> _logger;
 
+    private const int MaxDownloadsReachedExitCode = 101;
+
     private static readonly HashSet<string> AuthorizedSchemes = ["http", "https"];
     private static readonly HashSet<string> AuthorizedHosts = ["www.youtube.com", "youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com"];
 
@@ -27,6 +29,7 @@ public class DownloadService : IDownloadService
 
         string host = uriResult.Host;
         string scheme = uriResult.Scheme;
+        string path = uriResult.AbsolutePath;
 
         if (!AuthorizedSchemes.Contains(scheme))
         {
@@ -36,6 +39,11 @@ public class DownloadService : IDownloadService
         if (!AuthorizedHosts.Contains(host))
         {
             return new DownloadResult(DownloadOutcome.Refused, null, "Only YouTube URLs are accepted.");
+        }
+
+        if (!IsSingleVideoUrl(uriResult))
+        {
+            return new DownloadResult(DownloadOutcome.Refused, null, "This URL does not point to a single YouTube video.");
         }
 
         ProcessStartInfo processStartInfo = new ProcessStartInfo(_settings.Ytdlp)
@@ -49,6 +57,8 @@ public class DownloadService : IDownloadService
         string[] arguments = [ "-f", "ba", "-x",
                             "--audio-format", "mp3",
                             "--audio-quality", "0",
+                            "--max-downloads", "1",
+                            "--no-playlist",
                             "-o", Path.Combine(_settings.DownloadFolder, "%(id)s.%(ext)s"),
                             "--print", "after_move:filepath",
                             "--ffmpeg-location",  _settings.Ffmpeg,
@@ -88,7 +98,9 @@ public class DownloadService : IDownloadService
             string output = await outputTask;
             string error = await errorTask;
 
-            if (process.ExitCode != 0)
+            bool completed = process.ExitCode == 0 || process.ExitCode == MaxDownloadsReachedExitCode;
+
+            if (!completed)
             {
                 _logger.LogWarning("yt-dlp exited with code {ExitCode}. Error output: {Error}", process.ExitCode, error);
                 return ClassifyError(error);
@@ -102,6 +114,29 @@ public class DownloadService : IDownloadService
 
             return new DownloadResult(DownloadOutcome.Success, output.Trim(), "Download was successful.");
         }
+    }
+
+    private static bool IsSingleVideoUrl(Uri uri)
+    {
+        string path = uri.AbsolutePath;
+
+        if (uri.Host == "youtu.be")
+        {
+            return path.Length > 1 && path.IndexOf('/', 1) == -1;
+        }
+
+        if (path.StartsWith("/shorts/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (path.Equals("/watch", StringComparison.OrdinalIgnoreCase))
+        {
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            return !string.IsNullOrEmpty(query["v"]);
+        }
+
+        return false;
     }
 
     private static DownloadResult ClassifyError(string error)
